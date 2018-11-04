@@ -18,7 +18,7 @@ filtrarPeliculasPorPalabrasClave palabras = List.filter (peliculaTienePalabrasCl
 --
 
 peliculaTienePalabrasClave : String -> Movie -> Bool
-peliculaTienePalabrasClave palabras pelicula = String.contains (String.toUpper palabras) (String.toUpper pelicula.title)
+peliculaTienePalabrasClave palabras pelicula = String.foldr contains (String.toUpper palabras) (String.toUpper pelicula.title)
 
 
 -- **************
@@ -39,13 +39,13 @@ peliculaTieneGenero genero pelicula = List.member genero pelicula.genre
 -- **************
 
 filtrarPeliculasPorMenoresDeEdad : Bool -> List Movie -> List Movie
-filtrarPeliculasPorMenoresDeEdad mostrarSoloMenores peliculas = if mostrarSoloMenores == True then listaMenores peliculas else peliculas
+filtrarPeliculasPorMenoresDeEdad mostrarSoloMenores peliculas = if mostrarSoloMenores then listaMenores peliculas else peliculas
 
 listaMenores : List Movie -> List Movie
 listaMenores = List.filter ( esMenor ) 
 
 esMenor : Movie -> Bool
-esMenor pelicula = pelicula.forKids == True
+esMenor pelicula = pelicula.forKids 
 
 
 
@@ -73,7 +73,7 @@ darLikeAPelicula : Int -> List Movie -> List Movie
 darLikeAPelicula id peliculas = List.map (aumentarLikes id)  peliculas
 
 aumentarLikes : Int -> Movie -> Movie
-aumentarLikes id pelicula = if pelicula.id == id then { pelicula | likes = pelicula.likes +1 } else { pelicula | likes = pelicula.likes }
+aumentarLikes id pelicula = if pelicula.id == id then { pelicula | likes = pelicula.likes +1 } else  pelicula 
 
 -- **************
 -- Requerimiento: cargar preferencias a través de un popup modal,
@@ -86,7 +86,7 @@ calcularPorcentajeDeCoincidencia : Preferences -> List Movie -> List Movie
 calcularPorcentajeDeCoincidencia preferencias peliculas = List.map (noMasde100 << calcularIndice preferencias) peliculas
 
 calcularIndice : Preferences -> Movie -> Movie
-calcularIndice preferencia pelicula =  (coincideActor preferencia (coincideGenero preferencia (coincidePalabra preferencia (coincideTerror preferencia pelicula)))) 
+calcularIndice preferencia pelicula =  (coincideActor preferencia (coincideGenero preferencia (coincidePalabra preferencia (coincide preferencia pelicula)))) 
 --habria que aplicar composicion.
 
 sumaPuntos : Int -> Movie -> Movie
@@ -101,8 +101,8 @@ coincideActor preferencia pelicula = if List.member preferencia.favoriteActor pe
 coincideGenero : Preferences -> Movie -> Movie
 coincideGenero preferencia pelicula = if peliculaTieneGenero preferencia.genre pelicula then sumaPuntos 60 pelicula else pelicula
 
-coincideTerror : Preferences -> Movie -> Movie
-coincideTerror preferencia pelicula = if (String.contains "terror" preferencia.genre && peliculaTieneGenero "suspenso" pelicula) then sumaPuntos 15 pelicula else pelicula
+coincide : Preferences -> Movie -> Movie
+coincide preferencia pelicula = if (String.contains "terror" preferencia.genre && peliculaTieneGenero "suspenso" pelicula) then sumaPuntos 15 pelicula else pelicula
   
 noMasde100 : Movie -> Movie
-noMasde100 pelicula = if pelicula.matchPercentage > 100 then { pelicula | matchPercentage = 100 } else { pelicula | matchPercentage = pelicula.matchPercentage }
+noMasde100 pelicula =  { pelicula | matchPercentage = min 100 pelicula.matchPercentage } 
