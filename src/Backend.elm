@@ -18,7 +18,10 @@ filtrarPeliculasPorPalabrasClave palabras = List.filter (peliculaTienePalabrasCl
 --
 
 peliculaTienePalabrasClave : String -> Movie -> Bool
-peliculaTienePalabrasClave palabras pelicula = String.contains (String.toUpper palabras) (String.toUpper pelicula.title)
+peliculaTienePalabrasClave palabras pelicula =  List.any (tienePalabrasClave pelicula) (String.words palabras)
+
+tienePalabrasClave : Movie -> String -> Bool
+tienePalabrasClave pelicula palabra = (flip String.contains (String.toUpper pelicula.title)) (String.toUpper palabra)
 
 
 -- **************
